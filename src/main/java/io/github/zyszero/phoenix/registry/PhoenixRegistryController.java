@@ -1,6 +1,8 @@
 package io.github.zyszero.phoenix.registry;
 
 import com.alibaba.fastjson.JSON;
+import io.github.zyszero.phoenix.registry.cluster.Cluster;
+import io.github.zyszero.phoenix.registry.cluster.Server;
 import io.github.zyszero.phoenix.registry.model.InstanceMeta;
 import io.github.zyszero.phoenix.registry.service.RegistryService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,10 @@ public class PhoenixRegistryController {
 
     @Autowired
     private RegistryService registryService;
+
+
+    @Autowired
+    private Cluster cluster;
 
 
     @RequestMapping("/register")
@@ -72,10 +78,34 @@ public class PhoenixRegistryController {
     }
 
 
-    public static void main(String[] args) {
-        InstanceMeta instanceMeta = InstanceMeta.http("127.0.0.1", 8484)
-                .addParams(Map.of("env", "dev", "tag", "RED"));
-        System.out.println(JSON.toJSONString(instanceMeta));
+    @RequestMapping("/info")
+    public Server info() {
+        Server server = cluster.self();
+        log.info(" ====> get server info: {}", server);
+        return server;
     }
 
+
+    @RequestMapping("/cluster")
+    public List<Server> cluster() {
+        List<Server> servers = cluster.getServers();
+        log.info(" ====> get cluster info: {}", servers);
+        return servers;
+    }
+
+    @RequestMapping("/leader")
+    public Server leader() {
+        Server server = cluster.leader();
+        log.info(" ====> get leader info: {}", server);
+        return server;
+    }
+
+    @RequestMapping("/sl")
+    public Server sl() {
+        Server server = cluster.self();
+        server.setLeader(true);
+        log.info(" ====> server hashcode: {}", server.hashCode());
+        log.info(" ====> get leader info: {}", server);
+        return server;
+    }
 }

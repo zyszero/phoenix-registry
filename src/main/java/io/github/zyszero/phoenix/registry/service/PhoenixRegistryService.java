@@ -44,8 +44,8 @@ public class PhoenixRegistryService implements RegistryService {
             }
         }
         log.info(" ====> register instance: {}", instance.toUrl());
-        instance.setStatus(true);
         REGISTRY.add(service, instance);
+        instance.setStatus(true);
         renew(instance, service);
         VERSIONS.put(service, VERSION.incrementAndGet());
         return instance;
