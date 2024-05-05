@@ -1,0 +1,34 @@
+### 获取所有服务实例84
+GET http://localhost:8484/findAll?service=io.github.zyszero.phoenix.rpc.UserService
+
+### 获取所有服务实例85
+GET http://localhost:8486/findAll?service=io.github.zyszero.phoenix.rpc.UserService
+
+
+### 注册一个实例
+POST http://localhost:8484/register?service=io.github.zyszero.phoenix.rpc.UserService
+content-type: application/json
+
+{
+  "context": "phoenix-rpc",
+  "host": "127.0.0.1",
+  "port": 8484,
+  "scheme": "http",
+  "status": false,
+  "parameters": {
+    "env": "dev",
+    "tag": "RED"
+  }
+}
+
+### 取消注册一个实例
+POST http://localhost:8484/unregister?service=io.github.zyszero.phoenix.rpc.UserService
+content-type: application/json
+
+{
+  "context": "phoenix-rpc",
+  "host": "127.0.0.1",
+  "port": 8484,
+  "scheme": "http"
+}
+
