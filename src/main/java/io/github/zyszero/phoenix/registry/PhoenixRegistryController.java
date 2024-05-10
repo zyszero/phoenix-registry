@@ -75,13 +75,13 @@ public class PhoenixRegistryController {
 
     @RequestMapping("/version")
     public Long version(@RequestParam("service") String service) {
-        log.info(" ====> get version for service: {}", service);
+        log.info(" ====> version: {}", service);
         return registryService.version(service);
     }
 
     @RequestMapping("/versions")
     public Map<String, Long> versions(@RequestParam("services") String services) {
-        log.info(" ====> get versions for services: {}", services);
+        log.info(" ====> versions : {}", services);
         return registryService.versions(services.split(","));
     }
 
@@ -89,7 +89,7 @@ public class PhoenixRegistryController {
     @RequestMapping("/info")
     public Server info() {
         Server server = cluster.self();
-        log.info(" ====> get server info: {}", server);
+        log.info(" ====> server info: {}", server);
         return server;
     }
 
@@ -97,14 +97,14 @@ public class PhoenixRegistryController {
     @RequestMapping("/cluster")
     public List<Server> cluster() {
         List<Server> servers = cluster.getServers();
-        log.info(" ====> get cluster info: {}", servers);
+        log.info(" ====> cluster info: {}", servers);
         return servers;
     }
 
     @RequestMapping("/leader")
     public Server leader() {
         Server server = cluster.leader();
-        log.info(" ====> get leader info: {}", server);
+        log.info(" ====> leader: {}", server);
         return server;
     }
 
@@ -112,8 +112,7 @@ public class PhoenixRegistryController {
     public Server sl() {
         Server server = cluster.self();
         server.setLeader(true);
-        log.info(" ====> server hashcode: {}", server.hashCode());
-        log.info(" ====> get leader info: {}", server);
+        log.info(" ====> leader: {}", server);
         return server;
     }
 
