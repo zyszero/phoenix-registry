@@ -1,9 +1,10 @@
 package io.github.zyszero.phoenix.registry;
 
-import com.alibaba.fastjson.JSON;
 import io.github.zyszero.phoenix.registry.cluster.Cluster;
 import io.github.zyszero.phoenix.registry.cluster.Server;
+import io.github.zyszero.phoenix.registry.cluster.Snapshot;
 import io.github.zyszero.phoenix.registry.model.InstanceMeta;
+import io.github.zyszero.phoenix.registry.service.PhoenixRegistryService;
 import io.github.zyszero.phoenix.registry.service.RegistryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,15 @@ public class PhoenixRegistryController {
 
     @RequestMapping("/register")
     public InstanceMeta register(@RequestParam("service") String service, @RequestBody InstanceMeta instance) {
+        checkLeader();
         log.info(" ====> register service: {}, instance: {}", service, instance);
         return registryService.register(service, instance);
+    }
+
+    private void checkLeader() {
+        if (!cluster.self().isLeader()) {
+            throw new RuntimeException("current server is not a leader, the leader is " + cluster.leader());
+        }
     }
 
     @RequestMapping("/unregister")
@@ -107,5 +115,10 @@ public class PhoenixRegistryController {
         log.info(" ====> server hashcode: {}", server.hashCode());
         log.info(" ====> get leader info: {}", server);
         return server;
+    }
+
+    @RequestMapping("/snapshot")
+    public Snapshot snapshot() {
+        return PhoenixRegistryService.snapshot();
     }
 }

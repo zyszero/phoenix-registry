@@ -36,8 +36,8 @@ public class PhoenixHealthChecker implements HealthChecker {
             log.info(" ====> Health checker is running...");
             // check health
             long now = System.currentTimeMillis();
-            PhoenixRegistryService.TIMESTAMP.keySet().forEach(serviceAndInstance -> {
-                long timestamp = PhoenixRegistryService.TIMESTAMP.get(serviceAndInstance);
+            PhoenixRegistryService.TIMESTAMPS.keySet().forEach(serviceAndInstance -> {
+                long timestamp = PhoenixRegistryService.TIMESTAMPS.get(serviceAndInstance);
                 if (now - timestamp > timeout) {
                     log.info("  ====> Health checker: {} is down", serviceAndInstance);
                     int index = serviceAndInstance.indexOf("@");
@@ -45,7 +45,7 @@ public class PhoenixHealthChecker implements HealthChecker {
                     String url = serviceAndInstance.substring(index + 1);
                     InstanceMeta instance = InstanceMeta.from(url);
                     registryService.unregister(service, instance);
-                    PhoenixRegistryService.TIMESTAMP.remove(serviceAndInstance);
+                    PhoenixRegistryService.TIMESTAMPS.remove(serviceAndInstance);
                 }
             });
         }, 10, 10, TimeUnit.SECONDS);

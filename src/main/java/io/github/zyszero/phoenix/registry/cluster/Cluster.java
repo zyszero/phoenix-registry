@@ -1,7 +1,7 @@
 package io.github.zyszero.phoenix.registry.cluster;
 
 import io.github.zyszero.phoenix.registry.PhoenixRegistryConfigProperties;
-import io.github.zyszero.phoenix.registry.http.HttpInvoker;
+import io.github.zyszero.phoenix.registry.service.PhoenixRegistryService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,10 +10,6 @@ import org.springframework.cloud.commons.util.InetUtilsProperties;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 
 /**
@@ -30,7 +26,7 @@ public class Cluster {
     @Value("${server.port}")
     String port;
 
-    String host = new InetUtils(new InetUtilsProperties()).findFirstNonLoopbackAddress().getHostAddress();
+    String host;
 
     Server MYSELF;
 
@@ -41,11 +37,6 @@ public class Cluster {
         this.registryProperties = registryProperties;
     }
 
-
-    final ScheduledExecutorService executor =
-            Executors.newScheduledThreadPool(1);
-
-    long timeout = 5_000;
 
     private List<Server> servers;
 
@@ -60,6 +51,14 @@ public class Cluster {
         MYSELF = new Server("http://" + host + ":" + port, true, false, -1L);
         log.info(" ===> myself: {}", MYSELF);
 
+        initServers();
+
+        ServerHealth serverHealth = new ServerHealth(this);
+        serverHealth.checkServerHealth();
+
+    }
+
+    private void initServers() {
         List<Server> servers = new ArrayList<>();
         // init servers
         for (String url : registryProperties.getServices()) {
@@ -80,78 +79,12 @@ public class Cluster {
                 servers.add(server);
             }
         }
-        // todo ...
         this.servers = servers;
-
-
-        executor.scheduleWithFixedDelay(() -> {
-            // check health
-            updateServers();
-            electLeader();
-        }, 0, timeout, TimeUnit.MILLISECONDS);
     }
 
-    private void electLeader() {
-        List<Server> masters = servers.stream().filter(Server::isStatus)
-                .filter(Server::isLeader)
-                .toList();
-        if (masters.isEmpty()) {
-            log.info(" ===>>> elect for no leaders: {}", servers);
-            elect();
-        } else if (masters.size() > 1) {
-            log.info(" ===>>> elect for more than one master: {}", servers);
-            elect();
-        } else {
-            log.info(" ===>>> no need election for leader: {}", masters.get(0));
-        }
-    }
-
-    private void elect() {
-        // 1.各种节点自己选，算法保证大家选的是同一个
-        // 2.外部有一个分布式锁，谁拿到锁，谁是主
-        // 3.分布式一致性算法，比如paxos,raft，，很复杂
-        Server candidate = null;
-        for (Server server : servers) {
-            server.setLeader(false);
-            if (server.isStatus()) {
-                if (candidate == null) {
-                    candidate = server;
-                } else {
-                    if (candidate.hashCode() > server.hashCode()) {
-                        candidate = server;
-                    }
-                }
-            }
-        }
-
-        if (candidate != null) {
-            candidate.setLeader(true);
-            log.info(" ===>>> elected leader: {}", candidate);
-        } else {
-            log.info(" ===>>> elected failed for no leaders: {}", servers);
-        }
-    }
-
-    private void updateServers() {
-        servers.forEach(server -> {
-            try {
-                Server serverInfo = HttpInvoker.httpGet(server.getUrl() + "/info", Server.class);
-                log.info(" ===>>> health check success for {}", serverInfo);
-                if (serverInfo != null) {
-                    server.setStatus(true);
-                    server.setLeader(serverInfo.isLeader());
-                    server.setVersion(serverInfo.getVersion());
-                }
-            } catch (Exception ex) {
-                log.info(" ===>>> health check failed for {}", server);
-                server.setStatus(false);
-                server.setLeader(false);
-            }
-        });
-
-    }
 
     public Server self() {
+        MYSELF.setVersion(PhoenixRegistryService.VERSION.get());
         return MYSELF;
     }
 

@@ -1,5 +1,6 @@
 package io.github.zyszero.phoenix.registry.service;
 
+import io.github.zyszero.phoenix.registry.cluster.Snapshot;
 import io.github.zyszero.phoenix.registry.model.InstanceMeta;
 
 import java.util.List;
@@ -19,13 +20,14 @@ public interface RegistryService {
 
     List<InstanceMeta> getAllInstances(String service);
 
+    // TODO 添加一些高级功能
     Long renew(InstanceMeta instance, String... service);
 
     Long version(String service);
 
     Map<String, Long> versions(String... services);
 
-    // todo: add more methods
+
 
 
 }
