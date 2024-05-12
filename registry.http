@@ -1,8 +1,8 @@
 ### 获取所有服务实例84
-GET http://localhost:8484/findAll?service=io.github.zyszero.phoenix.rpc.UserService
+GET http://localhost:8484/findAll?service=app1_public_dev_cn.zyszero.phoenix.rpc.demo.api.UserService
 
 ### 获取所有服务实例85
-GET http://localhost:8486/findAll?service=io.github.zyszero.phoenix.rpc.UserService
+GET http://localhost:8486/findAll?service=app1_public_dev_cn.zyszero.phoenix.rpc.demo.api.UserService
 
 
 ### 注册一个实例
